@@ -1,6 +1,8 @@
 const express = require('express')
 const sqlite3 = require('sqlite3').verbose()
 const { Sequelize } = require('sequelize')
+const Animals = require('./models/index')
+
 const app = express()
 
 const db = new sqlite3.Database('animal-app.db')
@@ -18,61 +20,29 @@ const sequelize = new Sequelize({
 })
 
 //Random animal rendered
-app.get("/", (req, res) => {
-    //res.send("Hej!")
-    const sql = "SELECT * FROM animals ORDER BY RANDOM() LIMIT 1"
-    const animals = db.get(sql, (err, row) => {
-        console.log(row)
-        res.render("index", {row})
+app.get("/", async(req, res) => {
+    let animal = await Animals.findOne({
+        order: sequelize.random()
     })
-    
-    console.log(animals)
+
+    res.render('index', { animal })
+    console.log(animal)
 })
 
-
-
-app.get("/multiple", (req, res) => {
-    const sql = "SELECT * FROM animals"
-    let animalArray = [], records = []
-    function getRows(){
-        return new Promise((resolve, reject) => {
-            db.all(sql, [], (err, rows) => {
-                if(err){
-                   reject(err)
-                }
-                rows.forEach((row) => {
-                    animalArray.push(row)
-                })
-
-                resolve(animalArray)
-            })
-        })
-    }
-
-    async function asyncGetRows(){
-        records = await getRows()
-        console.log("Records length is " + records.length)
-
-        res.render('multiple', {records})
-        //return records
-    }
-
-    asyncGetRows()
+app.get('/multiple', async(req, res)=> {
+    const animals = await Animals.findAll()
+    res.render('multiple', { animals })
 })
 
 //Jobbar med följande
 
-app.post("/", (req, res) => {
+app.post("/", async(req, res) => {
+    const { like } = req.body
+    const animal = await Animals.findOne({where:{id:like}})
+    animal.likes++
+    animal.save()
 
-    /*
-    const sql = `UPDATE animals                `
-    const animals = db.get(sql, (err, row) => {
-        console.log(row)
-        res.render("index", {row})
-    })
-    
-    console.log(animals)
-    */
+    res.redirect('/')
 })
 
 //Slut på labbet
