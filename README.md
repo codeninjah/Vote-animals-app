@@ -3,9 +3,10 @@ This is a app where you see pictures of animals and can vote.
 
 ## How to run it
 
+```
 npm install express sqlite3 sequelize ejs
 
-```
+
 node db/setup.js
 node db/seed.js
 node app.js
